@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
   lastLogin: { type: Date },
   avatar: { type: String }, // Cloudinary URL for avatar image
-  passport: { type: String }, // Cloudinary URL for passport image
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 });
 

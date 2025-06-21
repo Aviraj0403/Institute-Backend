@@ -1,0 +1,9 @@
+student -> download result , hall ticket , admit card , and thier details like name father name number addres year
+employye -> who make student account , where he fill all details abt students who can generate thier hall ticket admit carf result that show on students dashboard and he will also find student detail or ticket all from his dashboard from usiing - Employer Login (or open access based on policy)
+- Minimal Verification Inputs:
+- Certificate Number
+- Student Name
+- Passing Year
+- Output:
+- Student Profile Summary
+- Certificate Verification Result (Success / Failure)
