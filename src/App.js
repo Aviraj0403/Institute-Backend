@@ -1,8 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-// import userAuthRoutes from './routers/userAuth.routes.js';
-// import categoryRoutes from './routers/category.routes.js';
+import studentRoutes from './routers/student.routes.js';
+import employeeRoutes from './routers/employee.routes.js';
+import admitRoutes from './routers/admitCard.routes.js';
+import courseRoutes from './routers/course.routes.js';
+import examSubjectRoutes from './routers/examSubject.routes.js';
+import subjectRoutes from './routers/subject.routes.js';
 // import productRoutes from './routers/product.routes.js';
 // import adminRoutes from './routers/adminAuth.routes.js';
 // import cartRoutes from './routers/cart.routes.js';
@@ -48,8 +52,13 @@ app.use(cookieParser());
 app.use(logSessionActivity);
 
 // API Routes
-// app.use('/api', userAuthRoutes);
-// app.use('/api', productRoutes);
+app.use('/api', studentRoutes);
+
+app.use('/api', employeeRoutes);
+app.use('/api', admitRoutes);
+app.use('/api', courseRoutes);
+app.use('/api', examSubjectRoutes);
+app.use('/api', subjectRoutes);
 // app.use('/api', categoryRoutes);
 // app.use('/api', adminRoutes);
 // app.use('/api', orderRoutes);

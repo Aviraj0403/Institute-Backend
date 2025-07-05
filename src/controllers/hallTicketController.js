@@ -49,3 +49,4 @@ export const manualVerificationController = async (req, res) => {
     res.status(500).json({ error: 'Something went wrong during manual verification.' });
   }
 };
+

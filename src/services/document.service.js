@@ -2,27 +2,44 @@ import fs from 'fs';
 import path from 'path';
 import pdfkit from 'pdfkit';
 import QRCode from 'qrcode';
-import cloudinary from '../utils/cloudinaryConfig.js'; // Cloudinary config
-import { Document } from '../models/document';
-import { Student } from '../models/student';
-import { VerificationLog } from '../models/verificationLog';
+import  cloudinary from '../config/cloudinaryConfig.js'; // Cloudinary config
+import  Document  from '../models/document.model.js';
+import  Student  from '../models/student.model.js';
+import  VerificationLog  from '../models/verificationLog.model.js';
 
 // Function to generate and upload the certificate
 export const generateCertificate = async (studentId, studentName, certificateDetails) => {
   try {
-    // Generate the certificate PDF using PDFKit
-    const doc = new pdfkit();
+    const doc = new pdfkit({ size: 'A4' });
     const fileName = `${studentName}_certificate.pdf`;
     const filePath = path.join(__dirname, '../uploads', fileName);
 
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
 
-    doc.fontSize(25).text('Certificate of Completion', 100, 100);
-    doc.fontSize(20).text(`Student Name: ${studentName}`, 100, 150);
-    doc.fontSize(15).text(`Certificate Details: ${certificateDetails}`, 100, 200);
-    doc.fontSize(12).text(`Issued by: XYZ Institute`, 100, 250);
-    doc.fontSize(10).text(`Date: ${new Date().toLocaleDateString()}`, 100, 270);
+    // Header with CIHS Studies Branding
+    doc.image(path.join(__dirname, '../assets/cihs_logo.png'), 50, 50, { width: 100 });  // CIHS logo
+    doc.fontSize(35).font('Helvetica-Bold').text('CIHS Studies', 170, 50, { align: 'center' });  // Institution name
+
+    // Title
+    doc.fontSize(25).font('Helvetica-Bold').text('Certificate of Completion', { align: 'center' });
+
+    // Body of the certificate
+    doc.moveDown(1);
+    doc.fontSize(20).font('Helvetica').text(`This is to certify that`, { align: 'center' });
+    doc.moveDown(0.5);
+    doc.fontSize(30).font('Helvetica-Bold').text(`${studentName}`, { align: 'center' });
+    doc.moveDown(1);
+    doc.fontSize(15).font('Helvetica').text(`has successfully completed the course: ${certificateDetails}`, { align: 'center' });
+
+    // Footer with Date and Institution
+    doc.moveDown(1.5);
+    doc.fontSize(12).font('Helvetica').text(`Issued by: CIHS Studies`, { align: 'left' });
+    doc.fontSize(12).font('Helvetica').text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
+
+    // Optional: add a border at the bottom
+    doc.moveDown(2);
+    doc.strokeColor('#000').lineWidth(2).moveTo(50, 750).lineTo(550, 750).stroke();
 
     doc.end();
 
@@ -74,8 +91,9 @@ export const generateHallTicket = async (studentId, certificateNo) => {
   const qrCodeUrl = `https://example.com/verify?studentId=${studentId}&certificateNo=${certificateNo}`;
   const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl);
 
-  const doc = new pdfkit();
+  const doc = new pdfkit({ size: 'A4' });
   const buffers = [];
+
   doc.on('data', buffers.push.bind(buffers));
   doc.on('end', async () => {
     const pdfBuffer = Buffer.concat(buffers);
@@ -105,20 +123,39 @@ export const generateHallTicket = async (studentId, certificateNo) => {
         }
       );
 
-      doc.end();
       doc.pipe(uploadStream);
+
+      // Header with CIHS Studies Branding
+      doc.image(path.join(__dirname, '../assets/cihs_logo.png'), 50, 50, { width: 100 });
+      doc.fontSize(35).font('Helvetica-Bold').text('CIHS Studies', 170, 50, { align: 'center' });
+
+      // Hall Ticket Title
+      doc.fontSize(25).font('Helvetica-Bold').text('Hall Ticket', { align: 'center' });
+
+      // Certificate Details
+      doc.moveDown(1);
+      doc.fontSize(20).font('Helvetica').text(`Student: ${student.firstName} ${student.lastName}`, { align: 'center' });
+      doc.fontSize(15).font('Helvetica').text(`Certificate No: ${certificateNo}`, { align: 'center' });
+      doc.fontSize(15).font('Helvetica').text(`Institution: CIHS Studies`, { align: 'center' });
+      doc.fontSize(15).font('Helvetica').text(`Passing Year: ${student.passingYear}`, { align: 'center' });
+
+      // QR Code
+      doc.image(qrCodeDataUrl, 400, 300, { width: 100, height: 100 });
+
+      // Footer with CIHS Details
+      doc.moveDown(1.5);
+      doc.fontSize(12).font('Helvetica').text(`Date: ${new Date().toLocaleDateString()}`, { align: 'left' });
+
+      // Optional: add a border at the bottom
+      doc.moveDown(2);
+      doc.strokeColor('#000').lineWidth(2).moveTo(50, 750).lineTo(550, 750).stroke();
+
+      doc.end();
     } catch (error) {
       console.error('Error during Hall Ticket generation or upload:', error);
       throw new Error('Error generating or uploading the Hall Ticket.');
     }
   });
-
-  doc.fontSize(20).text(`Hall Ticket for ${student.firstName} ${student.lastName}`, { align: 'center' });
-  doc.text(`Certificate No: ${certificateNo}`, { align: 'left' });
-  doc.text(`Institution: ${student.institutionName}`, { align: 'left' });
-  doc.text(`Passing Year: ${student.passingYear}`, { align: 'left' });
-
-  doc.image(qrCodeDataUrl, { width: 100, height: 100 });
 
   doc.end();
 };

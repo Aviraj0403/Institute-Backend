@@ -1,3 +1,4 @@
+// models/document.js
 import mongoose from 'mongoose';
 
 const documentSchema = new mongoose.Schema({
@@ -9,6 +10,11 @@ const documentSchema = new mongoose.Schema({
   uploadedAt: { type: Date, default: Date.now },
   fileSize: { type: Number, required: true },
   verified: { type: Boolean, default: false }, // Whether the document is verified
+  releaseStatus: { 
+    type: String, 
+    enum: ['released', 'not-released', 'coming-soon'], 
+    default: 'not-released'
+  }, // Track document release status
 });
 
 documentSchema.index({ studentId: 1, certificateNo: 1 });
