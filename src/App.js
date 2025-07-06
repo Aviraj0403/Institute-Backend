@@ -7,6 +7,7 @@ import admitRoutes from './routers/admitCard.routes.js';
 import courseRoutes from './routers/course.routes.js';
 import examSubjectRoutes from './routers/examSubject.routes.js';
 import subjectRoutes from './routers/subject.routes.js';
+import marksheetRoutes from './routers/marksheet.routes.js';
 // import productRoutes from './routers/product.routes.js';
 // import adminRoutes from './routers/adminAuth.routes.js';
 // import cartRoutes from './routers/cart.routes.js';
@@ -59,12 +60,7 @@ app.use('/api', admitRoutes);
 app.use('/api', courseRoutes);
 app.use('/api', examSubjectRoutes);
 app.use('/api', subjectRoutes);
-// app.use('/api', categoryRoutes);
-// app.use('/api', adminRoutes);
-// app.use('/api', orderRoutes);
-// app.use('/api', cartRoutes);
-// app.use('/api', userRoutes);
-// app.use('/api', offerRoutes);
+app.use('/api', marksheetRoutes);
 
   // In development, serve assets (e.g., images, JavaScript) from 'public' folder
 app.use(express.static(join(__dirname, 'public')));
@@ -75,7 +71,7 @@ app.get('/robots.txt', (req, res) => {
 
 // Root route (Health check or default response)
 app.get('/', (req, res) => {
-  res.send('Hello AviRaj!');
+  res.send('Hello AviRaj! PRoduction is running smoothly! ');
 });
 
 // Centralized error handling (for unhandled errors)

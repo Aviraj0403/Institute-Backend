@@ -7,7 +7,12 @@ import Subject from '../models/subject.model.js';
 // Assign subject to course with exam date
 export const assignSubjectToCourse = async (req, res) => {
   try {
-    const { courseId, subjectId, examDate } = req.body;
+    const { courseId, subjectId, examDate, startTime, endTime } = req.body;
+
+    // Validate required fields
+    if (!courseId || !subjectId || !examDate || !startTime || !endTime) {
+      return res.status(400).json({ message: 'All fields (courseId, subjectId, examDate, startTime, endTime) are required' });
+    }
 
     // Optional checks
     const course = await Course.findById(courseId);
@@ -20,13 +25,23 @@ export const assignSubjectToCourse = async (req, res) => {
     const exists = await ExamSubject.findOne({ courseId, subjectId });
     if (exists) return res.status(409).json({ message: 'This subject is already assigned to the course' });
 
-    const examSubject = await ExamSubject.create({ courseId, subjectId, examDate });
+    // Create subject with time
+    const examSubject = await ExamSubject.create({
+      courseId,
+      subjectId,
+      examDate,
+      startTime,
+      endTime
+    });
+
     res.status(201).json({ message: 'Subject assigned to course', examSubject });
 
   } catch (error) {
+    console.error('Error assigning subject:', error);
     res.status(500).json({ message: 'Error assigning subject to course', error: error.message });
   }
 };
+
 
 // Get subjects for a course
 export const getSubjectsForCourse = async (req, res) => {
