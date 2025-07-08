@@ -9,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.post('/admitCard/generate/single',  generateSingleAdmitCard);
+router.post('/admitCard/generate/single',  generateSingleAdmitCard); //
 router.post('/admitCard/generate/bulk',  generateBulkAdmitCards);
 
 export default router;

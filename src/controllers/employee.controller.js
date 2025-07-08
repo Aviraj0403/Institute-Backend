@@ -11,8 +11,6 @@ import { validationResult } from 'express-validator'; // Optional for validation
 
 dotenv.config();
 
-
-// 1. Create a new student account
 export const createStudentAccount = async (req, res) => {
   try {
     const {
@@ -22,6 +20,7 @@ export const createStudentAccount = async (req, res) => {
       firstName,
       lastName,
       aadharNumber,
+      dob,                // ⬅️ Added here
       rollNumber,
       institutionName,
       institutionAddress,
@@ -30,16 +29,19 @@ export const createStudentAccount = async (req, res) => {
       educationDetails,
       phoneNumber,
       address,
-      courseId, // ⬅️ Now expected in request
+      courseId,
       ...studentDetails
     } = req.body;
 
+    // Express-validator errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Check required fields presence
     const missingFields = [];
+    if (!dob) missingFields.push('dob');
     if (!institutionAddress) missingFields.push('institutionAddress');
     if (!passingYear) missingFields.push('passingYear');
     if (!fatherName) missingFields.push('fatherName');
@@ -52,35 +54,48 @@ export const createStudentAccount = async (req, res) => {
       return res.status(400).json({ message: `Missing required fields: ${missingFields.join(', ')}` });
     }
 
-    // Check if courseId is valid
+    // Validate dob is a valid date and not in the future
+    const dobDate = new Date(dob);
+    if (isNaN(dobDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format for dob' });
+    }
+    if (dobDate > new Date()) {
+      return res.status(400).json({ message: 'dob cannot be a future date' });
+    }
+
+    // Validate courseId
     const course = await Course.findById(courseId).lean();
     if (!course) {
       return res.status(400).json({ message: 'Invalid courseId provided' });
     }
 
+    // Check for existing user or student
     const [existingUser, existingStudent] = await Promise.all([
       User.findOne({ $or: [{ username }, { email }] }).lean(),
       Student.findOne({ $or: [{ aadharNumber }, { rollNumber }] }).lean()
     ]);
-
     if (existingUser) return res.status(400).json({ message: 'Username or Email already exists' });
     if (existingStudent) return res.status(400).json({ message: 'Aadhar Number or Roll Number already exists' });
 
+    // Hash password
     const hashedPassword = await hashPassword(password);
     if (!hashedPassword) return res.status(500).json({ message: 'Error hashing password' });
 
+    // Create user
     const user = await User.create({
       username,
       password: hashedPassword,
       email,
       firstName,
       lastName,
-      role: 'student'
+      role: 'student',
     });
 
+    // Create student (including dob)
     const student = await Student.create({
       userId: user._id,
       aadharNumber,
+      dob: dobDate,
       rollNumber,
       institutionName,
       institutionAddress,
@@ -89,11 +104,11 @@ export const createStudentAccount = async (req, res) => {
       educationDetails,
       phoneNumber,
       address,
-      courseId, // ✅ course reference saved
+      courseId,
       ...studentDetails
     });
 
-    // Don't block response
+    // Generate token and send welcome mail (don't block response)
     generateToken(res, user);
     sendMailer(email, 'Welcome to the platform', 'Your account has been created successfully.');
 
@@ -104,6 +119,7 @@ export const createStudentAccount = async (req, res) => {
     return res.status(500).json({ message: 'Error creating student account', error: error.message });
   }
 };
+
 
 
 // 2. Get student by name (first or last name)

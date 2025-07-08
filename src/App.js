@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import studentRoutes from './routers/student.routes.js';
+import authRoutes from './routers/auth.routes.js'; // Assuming authRoutes is defined in your routers
 import employeeRoutes from './routers/employee.routes.js';
 import admitRoutes from './routers/admitCard.routes.js';
 import courseRoutes from './routers/course.routes.js';
@@ -54,7 +55,7 @@ app.use(logSessionActivity);
 
 // API Routes
 app.use('/api', studentRoutes);
-
+app.use('/api', authRoutes); // Assuming authRoutes is defined in your routers
 app.use('/api', employeeRoutes);
 app.use('/api', admitRoutes);
 app.use('/api', courseRoutes);

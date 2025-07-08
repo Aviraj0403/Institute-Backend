@@ -8,12 +8,8 @@ const secret = process.env.ACCESS_TOKEN_SECRET;
 export const verifyToken = (req, res, next) => {
   console.log("Verifying token...");
 
-  // Try to get token from cookie OR Authorization header
-  // const cookieToken = req.cookies?.jwt;
   const cookieToken = req.cookies?.accessToken;
-
   const headerToken = req.headers.authorization?.split(" ")[1];
-
   const token = cookieToken || headerToken;
 
   if (!token) {
@@ -23,7 +19,7 @@ export const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);  // Corrected
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     if (!decoded?.data) {
       return res.status(401).json({
@@ -31,8 +27,8 @@ export const verifyToken = (req, res, next) => {
       });
     }
 
-    const { id, userName, email, roleType } = decoded.data;
-    req.user = { id, userName, email, roleType };
+    const { id, email, role, firstName, lastName } = decoded.data;
+    req.user = { id, email, role, firstName, lastName };
 
     console.log("User token verified:", req.user);
     next();

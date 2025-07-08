@@ -21,7 +21,7 @@ router.post('/create-student', createStudentAccount);
 router.get('/student/:name', getStudentByName);
 
 // 3. Get all students with optional filter by passing year
-router.get('/students', getAllStudents);
+router.get('/getAllStudents', getAllStudents);
 
 // 4. Delete a student account
 router.delete('/student/:studentId', deleteStudent);
