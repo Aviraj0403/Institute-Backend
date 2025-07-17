@@ -1,6 +1,7 @@
 import User from '../models/user.model.js';
-import Student from '../models/student.model.js';
+import Document from '../models/document.model.js';
 import VerificationLog from '../models/verificationLog.model.js';
+
 import bcrypt from 'bcryptjs';  // For password hashing
 import { comparePassword } from '../utils/comparePassword.js'; // Make sure this path is correct
 import { generateToken } from '../utils/generateJWTToken.js';

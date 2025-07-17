@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
 
 const verificationLogSchema = new mongoose.Schema({
-  employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },  // Employer who initiated verification
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // Student whose document is verified
-  certificateNo: { type: String, required: true }, // The certificate number being verified
-  documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true }, // The document being verified
-  verificationResult: { type: Boolean, required: true }, // True = verified, False = failed verification
-  verifiedAt: { type: Date, default: Date.now }, // Timestamp when the verification happened
-  verificationComments: { type: String }, // Optional comments on verification result
+  employerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  certificateNo: { type: String, required: true },
+  documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document', required: true },
+  verificationResult: { type: Boolean, required: true },
+  verifiedAt: { type: Date, default: Date.now },
+  verificationComments: { type: String },
 });
 
 verificationLogSchema.index({ employerId: 1, studentId: 1, certificateNo: 1 });
