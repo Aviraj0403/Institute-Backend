@@ -1,6 +1,5 @@
 import express from 'express';
-import { 
-  getStudentProfile, 
+import {  
   changePassword, 
   raiseSupportTicket, 
   downloadDocument, 
@@ -8,10 +7,17 @@ import {
   releaseDocument 
 } from '../controllers/student.controller.js'; // Import the controller functions
 
+import { getStudentProfile,
+  updateStudent, 
+  deleteStudent
+ } from '../controllers/admin.controller.js '; // Import the controller function
 const router = express.Router();
 
 // 1. Get Student Profile Details
-router.get('/profile', getStudentProfile); // Get student profile details
+// router.get('/profile', getStudentProfile); // Get student profile details
+router.get('/student/:studentId', getStudentProfile);
+router.put('/student/:studentId', updateStudent);  // 🔄 update
+router.delete('/student/:studentId', deleteStudent);
 
 // 2. Change Password
 router.post('/change-password', changePassword); // Student changes password

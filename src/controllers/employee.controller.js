@@ -156,6 +156,7 @@ export const getAllStudents = async (req, res) => {
     const { passingYear } = req.query;
     const filter = {};
 
+    // 🎯 Validate and apply passingYear filter
     if (passingYear) {
       const year = parseInt(passingYear);
       if (isNaN(year)) {
@@ -164,20 +165,20 @@ export const getAllStudents = async (req, res) => {
       filter.passingYear = year;
     }
 
+    // 📦 Query with filters and populate
     const students = await Student.find(filter)
       .populate('userId', 'firstName lastName username email status')
       .populate('courseId', 'name code department');
 
-    if (!students.length) {
-      return res.status(404).json({ message: 'No students found' });
-    }
-
+    // ✅ Don't treat 0 students as error — just return an empty array
     return res.status(200).json({ students });
+
   } catch (error) {
     console.error('Error fetching all students:', error);
     return res.status(500).json({ message: 'Error fetching students' });
   }
 };
+
 
 
 // 4. Delete student account

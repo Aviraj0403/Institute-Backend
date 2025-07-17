@@ -147,8 +147,8 @@ export const upsertMarksheet = async (req, res) => {
 
       const isPass = obtained >= subj.minMarks;
 
-      if (subj.type === 'theory') totalTheory += obtained;
-      else if (subj.type === 'practical') totalPractical += obtained;
+      if (subj.type === 'Theory') totalTheory += obtained;
+      else if (subj.type === 'Practical') totalPractical += obtained;
 
       grandTotal += obtained;
 

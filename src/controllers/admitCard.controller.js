@@ -8,101 +8,6 @@ import { PDFDocument } from 'pdf-lib';
 
 import archiver from 'archiver';
 import { Readable } from 'stream';
-// import { uploadToCloudinary } from "../services/cloudinary.js";
-// import { generateCertificateNo } from "../utils/generateCertificateNo.js";
-
-// export const generateSingleAdmitCard = async (req, res) => {
-//   try {
-//     const { studentId } = req.body;
-
-//     const student = await Student.findById(studentId)
-//       .populate('userId')
-//       .populate('courseId'); // useful for logging/debugging
-//     if (!student) return res.status(404).json({ message: 'Student not found' });
-
-//     // Prevent duplicate generation
-//     const existingCard = await AdmitCard.findOne({ studentId });
-//     if (existingCard)
-//       return res.status(409).json({ message: 'Admit card already exists for this student' });
-
-//     // Fetch subjects for the student's course
-//     const examSubjects = await ExamSubject.find({ courseId: student.courseId }).populate('subjectId');
-//     if (!examSubjects.length)
-//       return res.status(400).json({ message: 'No subjects found for the student’s course' });
-
-//     // Generate PDF
-//     const pdfBuffer = await generateAdmitCardPDF(student, examSubjects);
-
-//     // Upload to Cloudinary (or your storage)
-//     const uploadResult = await uploadToCloudinary(
-//       pdfBuffer,
-//       `admit-cards/admit_${student.rollNumber}.pdf`
-//     );
-
-//     // Create AdmitCard
-//     const admitCard = await AdmitCard.create({
-//       studentId,
-//       rollNumber: student.rollNumber,
-//       course: student.courseId?.name || '-', // 💡 Use populated course name
-//       batch: `${student.passingYear}`,
-//       dob: student.dob,
-//       institutionName: student.institutionName,
-//       subjects: examSubjects.map((s) => ({
-//         subjectId: s.subjectId._id,
-//         examDate: s.examDate
-//       })),
-//       pdfPath: uploadResult.secure_url
-//     });
-
-//     // Optional: Save in Documents table for records
-//     await Document.create({
-//       studentId,
-//       documentType: 'admit-card',
-//       documentName: `AdmitCard_${student.rollNumber}.pdf`,
-//       certificateNo: generateCertificateNo(student.rollNumber, 'ADM'),
-//       filePath: uploadResult.secure_url,
-//       fileSize: uploadResult.bytes,
-//       releaseStatus: 'released'
-//     });
-
-//     return res.status(201).json({ message: 'Admit card generated', data: admitCard });
-
-//   } catch (err) {
-//     console.error('❌ Error generating single admit card:', err);
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
-// export const generateSingleAdmitCard = async (req, res) => {
-//   try {
-//     const { studentId } = req.body;
-
-//     const student = await Student.findById(studentId).populate('userId');
-//     if (!student) return res.status(404).json({ message: 'Student not found' });
-
-//     const subjects = await ExamSubject.find({ courseId: student.courseId }).populate('subjectId');
-//     if (!subjects.length) return res.status(400).json({ message: 'No subjects found for this course' });
-
-//     const pdfBuffer = await generateAdmitCardPDF(student, subjects);
-
-//     // Dummy file info since we're skipping upload
-//     const file = {
-//       secure_url: `https://dummy.storage/admit-cards/${student.rollNumber}.pdf`,
-//       public_id: `admit-cards/${student.rollNumber}`
-//     };
-
-//     const saved = await AdmitCard.create({
-//       studentId,
-//       fileUrl: file.secure_url,
-//       fileId: file.public_id,
-//       createdAt: new Date(),
-//     });
-
-//     res.status(200).json({ message: 'Admit card generated', fileUrl: file.secure_url, saved });
-//   } catch (err) {
-//     console.error('Error:', err);
-//     res.status(500).json({ message: 'Error generating admit card' });
-//   }
-// };
 
 
 export const generateSingleAdmitCard = async (req, res) => {
@@ -246,98 +151,161 @@ export const generateBulkAdmitCards = async (req, res) => {
   }
 };
 
-// export const generateBulkAdmitCards = async (req, res) => {
-//   try {
-//     const { batch } = req.body;
+export const getAdmitCardList = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-//     // Fetch all students for the given batch
-//     const students = await Student.find({ passingYear: batch }).populate('userId');
-//     if (!students.length) {
-//       return res.status(404).json({ message: 'No students found' });
-//     }
+    const [cards, total] = await Promise.all([
+      AdmitCard.find()
+        .populate({
+          path: 'studentId',
+          select: 'userId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName'
+          }
+        })
+        .select('rollNumber studentId batch courseName updatedAt')
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      AdmitCard.countDocuments()
+    ]);
 
-//     // Prepare response headers for ZIP
-//     res.set({
-//       'Content-Type': 'application/zip',
-//       'Content-Disposition': `attachment; filename=admit_cards_batch_${batch}.zip`
-//     });
+    // Map cards to add full name string
+    const formatted = cards.map(card => {
+      const user = card.studentId?.userId;
+      const studentName = user ? `${user.firstName} ${user.lastName}` : 'N/A';
 
-//     // Create ZIP archive stream
-//     const archive = archiver('zip', { zlib: { level: 9 } });
-//     archive.pipe(res);
+      return {
+        _id: card._id,
+        rollNumber: card.rollNumber,
+        studentId: card.studentId?._id,
+        studentName,
+        batch: card.batch,
+        courseName: card.courseName,
+        updatedAt: card.updatedAt
+      };
+    });
 
-//     for (const student of students) {
-//       // Fetch subjects for the student's course
-//       const subjects = await ExamSubject.find({ courseId: student.courseId }).populate({
-//         path: 'subjectId',
-//         select: 'name code type'
-//       });
+    res.json({ cards: formatted, total });
+  } catch (err) {
+    console.error('Error listing admit cards:', err);
+    res.status(500).json({ message: 'Failed to list admit cards' });
+  }
+};
+export const downloadAdmitCardById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const admitCard = await AdmitCard.findById(id)
+      .populate('studentId courseId')
+      .lean();
+    if (!admitCard) return res.status(404).json({ message: 'Admit card not found' });
 
-//       if (!subjects.length) {
-//         console.warn(`No subjects found for ${student.rollNumber}, skipping...`);
-//         continue;
-//       }
+    const student = await Student.findById(admitCard.studentId).populate('userId');
+    if (!student) return res.status(404).json({ message: 'Student not found' });
 
-//       const pdfBuffer = await generateAdmitCardPDF(student, subjects);
+    const subjects = await ExamSubject.find({ courseId: admitCard.courseId })
+      .populate({ path: 'subjectId', select: 'name code type' });
 
-//       // Append to ZIP using a stream
-//       const stream = Readable.from(pdfBuffer);
-//       archive.append(stream, { name: `admit_${student.rollNumber}.pdf` });
-//     }
+    const pdfBuffer = await generateAdmitCardPDF(student, subjects);
 
-//     // Finalize and send ZIP
-//     await archive.finalize();
-//   } catch (error) {
-//     console.error('Error generating bulk admit cards:', error);
-//     res.status(500).json({ message: 'Error generating bulk admit cards' });
-//   }
-// };
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=admit_${admitCard.rollNumber}.pdf`,
+      'Content-Length': pdfBuffer.length
+    });
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('Error downloading admit card:', err);
+    res.status(500).json({ message: 'Failed to download admit card' });
+  }
+};
+// GET /api/admit-card/:studentId
+export const getAdmitCardByStudentId = async (req, res) => {
+  try {
+    const { studentId } = req.params;
 
-// export const generateBulkAdmitCards = async (req, res) => {
-//   const { subjects, batch } = req.body;
-//   const students = await Student.find({ passingYear: batch }).populate('userId');
-//   if (!students.length) return res.status(404).json({ error: 'No students found' });
+    const admitCard = await AdmitCard.findOne({ studentId })
+      .populate({
+        path: 'subjects.subjectId',
+        select: 'name code type'
+      })
+      .populate({
+        path: 'studentId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName email'
+        }
+      })
+      .lean();
 
-//   const result = [];
+    if (!admitCard) {
+      return res.status(404).json({ message: 'Admit card not found for this student' });
+    }
 
-//   for (const student of students) {
-//     if (await AdmitCard.findOne({ studentId: student._id })) {
-//       result.push({ rollNumber: student.rollNumber, status: 'skipped' });
-//       continue;
-//     }
+    res.status(200).json({ data: admitCard });
 
-//     const pdfBuffer = await generateAdmitCardPDF(student, subjects);
-//     const uploadResult = await uploadToCloud(pdfBuffer, `admit_${student.rollNumber}.pdf`);
+  } catch (err) {
+    console.error('Error fetching admit card by studentId:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
-//     const admitCard = await AdmitCard.create({
-//       studentId: student._id,
-//       rollNumber: student.rollNumber,
-//       course: student.educationDetails[0].degree,
-//       batch: `${student.passingYear}`,
-//       dob: student.dob,
-//       institutionName: student.institutionName,
-//       subjects: subjects.map(s => ({
-//         subjectId: s.subjectId, examDate: s.examDate
-//       })),
-//       pdfPath: uploadResult.secure_url
-//     });
+// GET /api/admit-card/by-name?name=John
+export const getAdmitCardByStudentName = async (req, res) => {
+  try {
+    const { name } = req.query;
 
-//     await Document.create({
-//       studentId: student._id,
-//       documentType: 'admit-card',
-//       documentName: `AdmitCard_${student.rollNumber}.pdf`,
-//       certificateNo: generateCertificateNo(student.rollNumber, 'ADM'),
-//       filePath: admitCard.pdfPath,
-//       fileSize: uploadResult.bytes,
-//       releaseStatus: 'released'
-//     });
+    if (!name) {
+      return res.status(400).json({ message: 'Student name is required' });
+    }
 
-//     result.push({ rollNumber: student.rollNumber, status: 'generated' });
-//   }
+    const regex = new RegExp(name, 'i'); // case-insensitive search
 
-//   res.status(200).json({ message: 'Bulk generation complete', details: result });
-// };
-// export const generateSingleAdmitCard = async (req, res) => {
+    const student = await Student.findOne()
+      .populate({
+        path: 'userId',
+        match: { firstName: regex }
+      });
+
+    if (!student || !student.userId) {
+      return res.status(404).json({ message: 'Student not found with this name' });
+    }
+
+    const admitCard = await AdmitCard.findOne({ studentId: student._id })
+      .populate({
+        path: 'subjects.subjectId',
+        select: 'name code type minMarks'
+      })
+      .lean();
+
+    if (!admitCard) {
+      return res.status(404).json({ message: 'Admit card not found' });
+    }
+
+    res.status(200).json({
+      data: {
+        studentName: `${student.userId.firstName} ${student.userId.lastName}`,
+        studentId: student._id,
+        subjects: admitCard.subjects.map((s) => ({
+          subjectId: s.subjectId._id,
+          subjectName: s.subjectId.name,
+          subjectCode: s.subjectId.code,
+          type: s.subjectId.type,
+          minMarks: s.subjectId.minMarks || 0
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching admit card by name:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 //   try {
 //     const { studentId } = req.body;
 //     const student = await Student.findById(studentId).populate('userId');

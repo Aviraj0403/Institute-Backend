@@ -26,26 +26,25 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-// Allowed Origins for CORS
 const allowedOrigins = [
-  'http://localhost:5173', // Local development
-  'https://grocery-ui-one.vercel.app', // Staging or demo
-  'https://www.shanumart.in', // Production
+  'http://localhost:5173',
+  'https://grocery-ui-one.vercel.app',
+  'https://www.shanumart.in',
 ];
 
-// Enable CORS
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow requests without origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Send cookies and authorization headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
-
 // Middleware for JSON body parsing and cookies
 app.use(express.json());
 app.use(cookieParser());

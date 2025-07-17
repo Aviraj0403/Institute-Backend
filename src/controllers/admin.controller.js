@@ -110,30 +110,36 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Compare passwords
+    // Validate password
     const isPasswordValid = await comparePassword(user.password, password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Prepare user payload for token (exclude password)
+    // Update lastLogin timestamp
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Prepare payload (omit password)
     const userDetails = {
       id: user._id,
       email: user.email,
       role: user.role,
       firstName: user.firstName,
-      lastName: user.lastName
+      lastName: user.lastName,
+      lastLogin: user.lastLogin, // include it in response if needed
     };
 
-    // Generate access + refresh tokens
+    // Generate tokens
     const { accessToken, refreshToken } = await generateToken(res, userDetails);
 
+    // Success response
     res.status(200).json({
       message: 'Login successful',
       accessToken,
@@ -146,3 +152,84 @@ export const login = async (req, res) => {
   }
 };
 
+
+/////STUDENT_______________/
+export const getStudentProfile = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // Validate ID
+    if (!studentId || !studentId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid student ID' });
+    }
+
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'userId',
+        select: 'username  email role firstName lastName avatar status isEmailVerified lastLogin createdAt '
+      })
+      .populate({
+        path: 'courseId',
+        select: 'name code description'
+      });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    res.status(200).json({ student });
+  } catch (error) {
+    console.error('❌ Error fetching student profile:', error);
+    res.status(500).json({
+      message: 'Error fetching student profile',
+      error: error.message,
+    });
+  }
+};
+
+
+export const updateStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { userData, studentData } = req.body;
+
+    // Update student data
+    const student = await Student.findByIdAndUpdate(studentId, studentData, {
+      new: true,
+      runValidators: true,
+    }).populate('userId courseId');
+
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    // Optional: Update associated user data if provided
+    if (userData) {
+      await User.findByIdAndUpdate(student.userId._id, userData, {
+        new: true,
+        runValidators: true,
+      });
+    }
+
+    const updatedStudent = await Student.findById(studentId)
+      .populate('userId courseId');
+
+    res.status(200).json({ message: 'Student updated successfully', student: updatedStudent });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update student', error: error.message });
+  }
+};
+
+export const deleteStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await Student.findByIdAndDelete(studentId);
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    // Optional: Also delete the associated User
+    await User.findByIdAndDelete(student.userId);
+
+    res.status(200).json({ message: 'Student and associated user deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete student', error: error.message });
+  }
+};

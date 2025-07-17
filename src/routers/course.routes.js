@@ -6,7 +6,7 @@ import {
   deleteCourse,
   updateCourse
 } from '../controllers/course.controller.js';
-
+import { verifyToken } from '../middlewares/verifyToken.js';
 const router = express.Router();
 
 // Create a new course
@@ -19,7 +19,7 @@ router.get('/getAllCourses', getAllCourses);
 router.get('/getCourseById/:courseId', getCourseById);
 
 // Update an existing course
-router.put('/updateCourse/:courseId', updateCourse);
+router.put('/updateCourse/:courseId', verifyToken ,updateCourse);
 
 // Delete a course
 router.delete('/deleteCourse/:courseId', deleteCourse);

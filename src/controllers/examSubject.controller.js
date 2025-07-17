@@ -54,3 +54,37 @@ export const getSubjectsForCourse = async (req, res) => {
     res.status(500).json({ message: 'Error fetching subjects for course', error: error.message });
   }
 };
+// Update exam details for assigned subject
+export const updateExamSubject = async (req, res) => {
+  try {
+    const { id } = req.params; // examSubject id
+    const { examDate, startTime, endTime } = req.body;
+
+    const examSubject = await ExamSubject.findById(id);
+    if (!examSubject) return res.status(404).json({ message: 'Assignment not found' });
+
+    if (examDate) examSubject.examDate = examDate;
+    if (startTime) examSubject.startTime = startTime;
+    if (endTime) examSubject.endTime = endTime;
+
+    await examSubject.save();
+
+    res.status(200).json({ message: 'Exam subject updated', examSubject });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating exam subject', error: error.message });
+  }
+};
+
+// Delete assigned subject
+export const deleteExamSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const examSubject = await ExamSubject.findByIdAndDelete(id);
+    if (!examSubject) return res.status(404).json({ message: 'Assignment not found' });
+
+    res.status(200).json({ message: 'Exam subject assignment deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting exam subject', error: error.message });
+  }
+};

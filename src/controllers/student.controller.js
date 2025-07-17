@@ -5,33 +5,7 @@ import { Ticket } from '../models/ticket.model.js'; // Assuming a ticket model f
 import bcrypt from 'bcryptjs'; // For password hashing
 
 // 1. Get Student Profile Details
-export const getStudentProfile = async (req, res) => {
-  try {
-    const student = await Student.findOne({ userId: req.user.id }).populate('userId', 'username firstName lastName email');
-    
-    if (!student) {
-      return res.status(404).json({ message: "Student profile not found" });
-    }
 
-    res.status(200).json({ 
-      student: {
-        id: student._id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        email: student.email,
-        phoneNumber: student.phoneNumber,
-        address: student.address,
-        institutionName: student.institutionName,
-        profilePicture: student.profilePicture,
-        status: student.status,
-        educationDetails: student.educationDetails
-      }
-    });
-  } catch (error) {
-    console.error("Error fetching student profile:", error);
-    res.status(500).json({ message: "Something went wrong", error: error.message });
-  }
-};
 
 // 2. Change Password
 export const changePassword = async (req, res) => {
