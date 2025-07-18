@@ -3,7 +3,8 @@ import multer from 'multer';
 import {
   uploadMarksheetExcel,
   upsertMarksheet,
-  generateMarksheetPDF
+  generateMarksheetPDF,
+  getPaginatedMarksheetList
 } from '../controllers/marksheet.controller.js';
 
 const router = express.Router();
@@ -15,5 +16,5 @@ router.post('/marksheet/upload-excel', upload.single('file'), uploadMarksheetExc
 router.post('/marksheet/upsert', upsertMarksheet);
 
 router.get('/marksheet/pdf/:studentId', generateMarksheetPDF);
-
+router.get('/marksheet/list', getPaginatedMarksheetList);
 export default router;

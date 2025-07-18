@@ -227,4 +227,32 @@ export const generateMarksheetPDF = async (req, res) => {
     res.status(500).json({ message: 'Error generating marksheet PDF' });
   }
 };
+export const getPaginatedMarksheetList = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const skip = (page - 1) * pageSize;
+
+    const [marksheets, total] = await Promise.all([
+      Marksheet.find()
+        .skip(skip)
+        .limit(pageSize)
+        .populate({
+          path: 'studentId',
+          populate: [
+            { path: 'userId', select: 'firstName lastName email' },
+            { path: 'courseId', select: 'name code' }  // <-- populate course here
+          ]
+        })
+        .populate('subjects.subjectId'),
+      Marksheet.countDocuments()
+    ]);
+
+    res.status(200).json({ marksheets, total });
+  } catch (err) {
+    console.error('Error fetching paginated marksheets:', err);
+    res.status(500).json({ message: 'Failed to fetch marksheets' });
+  }
+};
+
 

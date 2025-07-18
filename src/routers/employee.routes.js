@@ -10,6 +10,7 @@ import {
   verifyQRCode,
   logDocumentVerification,
   manualVerificationController,
+  searchStudents,
 } from '../controllers/employee.controller.js';
 
 const router = express.Router();
@@ -43,5 +44,5 @@ router.post('/log-verification', logDocumentVerification);
 
 // 10. Manually update document verification status
 router.post('/manual-verification', manualVerificationController);
-
+router.get('/students/search', searchStudents);
 export default router;

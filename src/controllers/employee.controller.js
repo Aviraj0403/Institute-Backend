@@ -298,6 +298,59 @@ export const manualVerificationController = async (req, res) => {
   }
 };
 
+export const searchStudents = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ message: 'Search query must be at least 2 characters' });
+    }
+
+    const regex = new RegExp(query, 'i'); // case-insensitive
+
+    const students = await Student.aggregate([
+      {
+        $lookup: {
+          from: 'users',          // collection name in MongoDB
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $match: {
+          $or: [
+            { rollNumber: regex },
+            { 'user.firstName': regex },
+            { 'user.lastName': regex },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          rollNumber: 1,
+          courseId: 1,
+          userId: 1,
+          user: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            email: 1,
+          },
+        },
+      },
+      { $limit: 15 },
+    ]);
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error('Error searching students:', error);
+    res.status(500).json({ message: 'Error searching students' });
+  }
+};
+
 
 
 
