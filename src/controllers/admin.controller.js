@@ -1,6 +1,6 @@
 import User from '../models/user.model.js';
 // import Document from '../models/document.model.js';
-import VerificationLog from '../models/verificationLog.model.js';
+import VerificationLog from '../models/verificationlog.model.js';
 
 import bcrypt from 'bcryptjs';  // For password hashing
 import { comparePassword } from '../utils/comparePassword.js'; // Make sure this path is correct

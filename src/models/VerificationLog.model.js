@@ -12,6 +12,7 @@ const verificationLogSchema = new mongoose.Schema({
 
 verificationLogSchema.index({ employerId: 1, studentId: 1, certificateNo: 1 });
 
-const VerificationLog = mongoose.model('VerificationLog', verificationLogSchema);
+// ✅ Fix here:
+const VerificationLog = mongoose.models.VerificationLog || mongoose.model('VerificationLog', verificationLogSchema);
 
 export default VerificationLog;
