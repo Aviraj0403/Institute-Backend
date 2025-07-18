@@ -1,4 +1,5 @@
 import User from '../models/user.model.js';
+import Student from '../models/student.model.js';
 // import Document from '../models/document.model.js';
 import VerificationLog from '../models/verificationlog.model.js';
 

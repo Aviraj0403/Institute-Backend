@@ -18,10 +18,8 @@ connectDB()
   .then(() => {
     console.log("✅ MongoDB Connected");
 
-    // Start the clustering (fork workers) after DB connection
-    startCluster();
+    // startCluster();
 
-    // Only start the server once the clustering is initialized
     startServer();
   })
   .catch((err) => {
