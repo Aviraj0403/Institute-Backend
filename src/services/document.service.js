@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import  cloudinary from '../config/cloudinaryConfig.js'; // Cloudinary config
 import  Document  from '../models/document.model.js';
 import  Student  from '../models/student.model.js';
-import  VerificationLog  from '../models/verificationLog.model.js';
+import  VerificationLog  from '../models/verificationlog.model.js';
 
 // Function to generate and upload the certificate
 export const generateCertificate = async (studentId, studentName, certificateDetails) => {
