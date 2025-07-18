@@ -1,8 +1,8 @@
-// import Document from '../models/document.model.js';
-import  Student  from '../models/student.model.js';
-import  User  from '../models/user.model.js';
-import { Ticket } from '../models/ticket.model.js'; // Assuming a ticket model for student issues
-import bcrypt from 'bcryptjs'; // For password hashing
+import Document from '../models/document.model.js';
+import Student from '../models/student.model.js';
+import User from '../models/user.model.js';
+import Ticket from '../models/ticket.model.js';
+import bcrypt from 'bcryptjs';
 
 // 1. Get Student Profile Details
 
