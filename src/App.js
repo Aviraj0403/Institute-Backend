@@ -29,8 +29,8 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'https://grocery-ui-one.vercel.app',
-  'https://www.shanumart.in',
-  ''
+  'https://institute-backend-8u6d.onrender.com',
+  'https://institute-backend-8u6d.onrender.com/api',
 ];
 
 app.use(cors({
