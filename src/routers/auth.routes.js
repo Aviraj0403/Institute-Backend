@@ -6,7 +6,8 @@ import {
   getAllStudents,
   getVerificationLogs,
   updateEmployeeStatus,
-  login
+  login,
+  logout
 } from '../controllers/admin.controller.js';
 
 import { verifyToken } from '../middlewares/verifyToken.js';
@@ -15,6 +16,7 @@ const router = express.Router();
 
 
 router.post('/user/login', login);
+router.post("/user/logout", logout);
 router.get('/me', verifyToken, authMe);
 
 // ✅ Get logged-in user's profile

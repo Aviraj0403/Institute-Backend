@@ -85,16 +85,27 @@ export const updateEmployeeStatus = async (req, res) => {
     res.status(500).json({ message: 'Error updating employee status', error: error.message });
   }
 };
-
-// Get current logged-in user profile (excluding password)
 export const profile = async (req, res) => {
   try {
+    // 1. Get user details
     const userProfileDetail = await User.findById(req.user.id).select('-password');
-    res.status(200).json({ userProfileDetail });
+
+    if (!userProfileDetail) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Try fetching student record linked to this user
+    const studentDetail = await Student.findOne({ userId: req.user.id }).populate("courseId");;
+
+    res.status(200).json({
+      userProfileDetail,
+      studentDetail, // ✅ add this to your response
+    });
   } catch (error) {
     res.status(500).json({ message: 'Something went wrong', error: error.message });
   }
 };
+
 
 // Check Authentication (returns logged in user data)
 export const authMe = async (req, res) => {
@@ -151,6 +162,25 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error('Login error:', error.message);
     res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+export const logout = async (req, res) => {
+  try {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/", // must match cookie path during login
+    };
+
+    // Clear both tokens
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error.message);
+    res.status(500).json({ message: "Error logging out", error: error.message });
   }
 };
 
