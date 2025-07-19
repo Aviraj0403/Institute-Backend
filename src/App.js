@@ -9,16 +9,14 @@ import courseRoutes from './routers/course.routes.js';
 import examSubjectRoutes from './routers/examSubject.routes.js';
 import subjectRoutes from './routers/subject.routes.js';
 import marksheetRoutes from './routers/marksheet.routes.js';
-// import productRoutes from './routers/product.routes.js';
-// import adminRoutes from './routers/adminAuth.routes.js';
-// import cartRoutes from './routers/cart.routes.js';
-// import orderRoutes from './routers/order.routes.js';
-// import userRoutes from './routers/user.routes.js';
-// import offerRoutes from './routers/offer.routes.js';
+import ticketRoutes from './routers/ticket.routes.js';
+
 import { logSessionActivity } from './middlewares/logSessionActivity.js';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';  // Import 'join' and 'dirname' from 'path'
+import { time } from 'console';
+import Ticket from './models/ticket.model.js';
 
 // Get the current directory name in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -62,6 +60,7 @@ app.use('/api', courseRoutes);
 app.use('/api', examSubjectRoutes);
 app.use('/api', subjectRoutes);
 app.use('/api', marksheetRoutes);
+app.use('/api', ticketRoutes);
 
   // In development, serve assets (e.g., images, JavaScript) from 'public' folder
 app.use(express.static(join(__dirname, 'public')));

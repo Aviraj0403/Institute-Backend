@@ -10,6 +10,16 @@ import archiver from 'archiver';
 import { Readable } from 'stream';
 
 
+export const isAdmitCardAvailable = async (req, res) => {
+  const { studentId } = req.query;
+
+  const admitCard = await AdmitCard.findOne({ studentId });
+  if (!admitCard) {
+    return res.status(200).json({ available: false });
+  }
+
+  return res.status(200).json({ available: true });
+};
 export const generateSingleAdmitCard = async (req, res) => {
   try {
     const { studentId } = req.body;

@@ -13,7 +13,26 @@ export const convertNumberToWords = async (num) => {
   return toWords(num).replace(/\b\w/g, c => c.toUpperCase());
 };
 
+export const isResultAvailable = async (req, res) => {
+  try {
+    const { studentId } = req.query;
 
+    if (!studentId) {
+      return res.status(400).json({ message: "Missing studentId in query" });
+    }
+
+    const result = await Marksheet.findOne({ studentId });
+
+    if (!result) {
+      return res.status(200).json({ available: false });
+    }
+
+    return res.status(200).json({ available: true });
+  } catch (error) {
+    console.error("Error checking result availability:", error);
+    return res.status(500).json({ message: "Server error while checking result availability." });
+  }
+};
 export const uploadMarksheetExcel = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Excel file is required' });

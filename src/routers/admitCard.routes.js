@@ -4,7 +4,8 @@ import {
     generateBulkAdmitCards, 
     getAdmitCardList,
     downloadAdmitCardById,
-    getAdmitCardByStudentId 
+    getAdmitCardByStudentId ,
+    isAdmitCardAvailable
     // downloadAdmitCard, 
     // checkAdmitCardStatus, 
     // releaseAdmitCard
@@ -17,5 +18,10 @@ router.post('/admitCard/generate/bulk',  generateBulkAdmitCards);
 router.get('/admitCard/list', getAdmitCardList);
 router.get('/admitCard/download/:id', downloadAdmitCardById);
 router.get('/admit-card/:studentId', getAdmitCardByStudentId )
+
+
+// Add to your routes
+router.get('/admitCard/check', isAdmitCardAvailable);
+
 
 export default router;
