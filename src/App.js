@@ -29,6 +29,10 @@ const allowedOrigins = [
   'https://institute-frontend-mocha.vercel.app',
   'https://institute-backend-8u6d.onrender.com',
   'https://institute-backend-8u6d.onrender.com/api',
+  'https://www.champaransafetybysahilkhan.com/',
+  'https://champaransafetybysahilkhan.com/',
+  'https://champaransafetybysahilkhan.com/api'
+
 ];
 
 app.use(cors({
