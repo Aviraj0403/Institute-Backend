@@ -34,6 +34,7 @@ const allowedOrigins = [
   'https://champaransafetybysahilkhan.com/api'
 
 ];
+app.options('*', cors());
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -41,7 +42,7 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'));
+       return callback(null, false);
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
