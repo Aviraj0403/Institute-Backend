@@ -88,7 +88,7 @@ export const generateHallTicket = async (studentId, certificateNo) => {
   const student = await Student.findById(studentId);
   if (!student) throw new Error('Student not found.');
 
-  const qrCodeUrl = `https://institute-backend-8u6d.onrender.com/verify?studentId=${studentId}&certificateNo=${certificateNo}`;
+  const qrCodeUrl = `https://institute-backend-8u6d.onrender.com/api/verify?studentId=${studentId}&certificateNo=${certificateNo}`;
   const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl);
 
   const doc = new pdfkit({ size: 'A4' });

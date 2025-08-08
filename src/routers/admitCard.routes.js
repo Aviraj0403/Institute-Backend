@@ -22,6 +22,7 @@ router.get('/admit-card/:studentId', getAdmitCardByStudentId )
 
 // Add to your routes
 router.get('/admitCard/check', isAdmitCardAvailable);
+router.get('/verify/:id', downloadAdmitCardById);
 
 
 export default router;

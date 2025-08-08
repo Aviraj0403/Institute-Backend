@@ -32,7 +32,7 @@ export async function generateToken(res, userDetails) {
   // 🔐 Cookie options (secure only in production, with path)
   const cookieOptions = {
     httpOnly: true,
-    secure:true,
+    secure: true, // Use true in production, false in development
     sameSite: "None",
 
     path: "/",   // IMPORTANT: must include path for clearing cookie later

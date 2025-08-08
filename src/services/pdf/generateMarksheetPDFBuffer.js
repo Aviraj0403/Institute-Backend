@@ -32,7 +32,7 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
       align: 'center'
     });
 
-  const qrData = `https://institute-backend-8u6d.onrender.com/verify/${student.rollNumber}`;
+  const qrData = `https://institute-backend-8u6d.onrender.com/api/verify/${student.rollNumber}`;
   const qrCodeBuffer = qr.imageSync(qrData, { type: 'png' });
   doc.image(qrCodeBuffer, pageWidth - 100, 20, { width: 60 });
 

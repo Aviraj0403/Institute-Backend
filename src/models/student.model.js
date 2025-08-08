@@ -9,7 +9,7 @@ const educationSchema = new mongoose.Schema({
 const studentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   fatherName: { type: String, required: true },
-  dob: { type: Date, required: true },
+  dob: { type: Date, required: false },
   phoneNumber: { type: String, required: true },
   address: { type: String, required: true },
   passingYear: { type: Number, required: true },

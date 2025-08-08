@@ -10,7 +10,7 @@ import {
 import { getStudentProfile,
   updateStudent, 
   deleteStudent
- } from '../controllers/admin.controller.js '; // Import the controller function
+ } from '../controllers/admin.controller.js '; 
 const router = express.Router();
 
 // 1. Get Student Profile Details

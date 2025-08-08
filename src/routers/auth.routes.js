@@ -7,7 +7,8 @@ import {
   getVerificationLogs,
   updateEmployeeStatus,
   login,
-  logout
+  logout,
+  refreshToken
 } from '../controllers/admin.controller.js';
 
 import { verifyToken } from '../middlewares/verifyToken.js';
@@ -16,6 +17,8 @@ const router = express.Router();
 
 
 router.post('/user/login', login);
+router.post('/auth/refresh-token', refreshToken);
+
 router.post("/user/logout", logout);
 router.get('/me', verifyToken, authMe);
 

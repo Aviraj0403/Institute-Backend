@@ -106,7 +106,32 @@ export const profile = async (req, res) => {
   }
 };
 
+export const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+    if (!token) return res.status(401).json({ message: "No refresh token" });
 
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const userData = decoded.data;
+
+    const accessToken = jwt.sign(
+      { data: userData },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({ message: "Access token refreshed" });
+  } catch (error) {
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
+};
 // Check Authentication (returns logged in user data)
 export const authMe = async (req, res) => {
   try {
@@ -219,33 +244,60 @@ export const getStudentProfile = async (req, res) => {
   }
 };
 
-
 export const updateStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { userData, studentData } = req.body;
+    const { userData, studentData, educationDetails, courseId } = req.body;
 
-    // Update student data
-    const student = await Student.findByIdAndUpdate(studentId, studentData, {
-      new: true,
-      runValidators: true,
-    }).populate('userId courseId');
+    // Check if studentId is provided in params
+    if (!studentId) {
+      return res.status(400).json({ message: 'Student ID is required' });
+    }
 
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    // Log to verify what data is being passed for updating
+    console.log('Request body:', req.body); // Debugging: log entire request body
+    console.log('Updating student:', studentId);
+    console.log('User Data:', userData);
+    console.log('Student Data:', studentData);
+    console.log('Education Details:', educationDetails);
+    console.log('Course ID:', courseId);
 
-    // Optional: Update associated user data if provided
+    // Prepare the data to update
+    let updatedStudentData = {
+      ...studentData,         // All other student data
+      courseId,               // Updated courseId
+    };
+
+    // If educationDetails is provided and is an array, include it in the update
+    if (Array.isArray(educationDetails)) {
+      updatedStudentData.educationDetails = educationDetails;
+    } else if (educationDetails !== undefined) {
+      console.log('Education details provided but not in the expected array format');
+    }
+
+    // Proceed with updating the student profile data
+    const updatedStudent = await Student.findByIdAndUpdate(
+      studentId,
+      updatedStudentData,
+      { new: true, runValidators: true }
+    )
+      .populate('userId')  // Populate user details
+      .populate('courseId'); // Populate course details
+
+    if (!updatedStudent) return res.status(404).json({ message: 'Student not found' });
+
+    // Update associated user data if provided
     if (userData) {
-      await User.findByIdAndUpdate(student.userId._id, userData, {
+      await User.findByIdAndUpdate(updatedStudent.userId._id, userData, {
         new: true,
         runValidators: true,
       });
     }
 
-    const updatedStudent = await Student.findById(studentId)
-      .populate('userId courseId');
-
+    // Send a successful response
     res.status(200).json({ message: 'Student updated successfully', student: updatedStudent });
   } catch (error) {
+    console.error('Error updating student:', error);
     res.status(500).json({ message: 'Failed to update student', error: error.message });
   }
 };
