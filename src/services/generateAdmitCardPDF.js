@@ -140,10 +140,10 @@ subjects.forEach((s, i) => {
   const footerY = doc.page.height - 100;
   doc.moveTo(50, footerY).lineTo(pageWidth - 50, footerY).stroke('#004080');
 
-  doc
-    .fontSize(10)
-    .fillColor('#666')
-    .text(`Generated on: ${new Date().toLocaleString()}`, 50, footerY + 10);
+  // doc
+  //   .fontSize(10)
+  //   .fillColor('#666')
+  //   .text(`Generated on: ${new Date().toLocaleString()}`, 50, footerY + 10);
 
   doc
     .fontSize(12)

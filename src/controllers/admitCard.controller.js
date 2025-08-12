@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import AdmitCard from "../models/admitCard.model.js";
 import Student from "../models/student.model.js";
 // import Document from "../models/document.model.js";
@@ -206,26 +207,93 @@ export const getAdmitCardList = async (req, res) => {
     res.status(500).json({ message: 'Failed to list admit cards' });
   }
 };
+// export const downloadAdmitCardById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const admitCard = await AdmitCard.findById(id)
+//       .populate('studentId courseId')
+//       .lean();
+//     if (!admitCard) return res.status(404).json({ message: 'Admit card not found' });
+
+//     const student = await Student.findById(admitCard.studentId).populate('userId');
+//     if (!student) return res.status(404).json({ message: 'Student not found' });
+
+//     const subjects = await ExamSubject.find({ courseId: admitCard.courseId })
+//       .populate({ path: 'subjectId', select: 'name code type' });
+
+//     const pdfBuffer = await generateAdmitCardPDF(student, subjects);
+
+//     res.set({
+//       'Content-Type': 'application/pdf',
+//       'Content-Disposition': `attachment; filename=admit_${admitCard.rollNumber}.pdf`,
+//       'Content-Length': pdfBuffer.length
+//     });
+//     res.send(pdfBuffer);
+//   } catch (err) {
+//     console.error('Error downloading admit card:', err);
+//     res.status(500).json({ message: 'Failed to download admit card' });
+//   }
+// };
+// GET /api/admit-card/:studentId
+// export const getAdmitCardByStudentId = async (req, res) => {
+//   try {
+//     const { studentId } = req.params;
+
+//     const admitCard = await AdmitCard.findOne({ studentId })
+//       .populate({
+//         path: 'subjects.subjectId',
+//         select: 'name code type'
+//       })
+//       .populate({
+//         path: 'studentId',
+//         populate: {
+//           path: 'userId',
+//           select: 'firstName lastName email'
+//         }
+//       })
+//       .lean();
+
+//     if (!admitCard) {
+//       return res.status(404).json({ message: 'Admit card not found for this student' });
+//     }
+
+//     res.status(200).json({ data: admitCard });
+
+//   } catch (err) {
+//     console.error('Error fetching admit card by studentId:', err);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
 export const downloadAdmitCardById = async (req, res) => {
   try {
+    // Step 1: Validate rollNumber parameter
     const { id } = req.params;
-    const admitCard = await AdmitCard.findById(id)
+    
+    // Fetch the Admit Card by rollNumber (instead of _id)
+    const admitCard = await AdmitCard.findOne({ rollNumber: id })
       .populate('studentId courseId')
       .lean();
+    
     if (!admitCard) return res.status(404).json({ message: 'Admit card not found' });
 
+    // Step 2: Fetch Student Details
     const student = await Student.findById(admitCard.studentId).populate('userId');
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
+    // Step 3: Fetch Exam Subjects for the given Course
     const subjects = await ExamSubject.find({ courseId: admitCard.courseId })
       .populate({ path: 'subjectId', select: 'name code type' });
 
+    // Step 4: Generate the Admit Card PDF
     const pdfBuffer = await generateAdmitCardPDF(student, subjects);
 
+    // Step 5: Send PDF Response
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename=admit_${admitCard.rollNumber}.pdf`,
-      'Content-Length': pdfBuffer.length
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-store', // Avoid caching
     });
     res.send(pdfBuffer);
   } catch (err) {
@@ -233,12 +301,43 @@ export const downloadAdmitCardById = async (req, res) => {
     res.status(500).json({ message: 'Failed to download admit card' });
   }
 };
-// GET /api/admit-card/:studentId
+
+
 export const getAdmitCardByStudentId = async (req, res) => {
   try {
     const { studentId } = req.params;
 
-    const admitCard = await AdmitCard.findOne({ studentId })
+    // Check if studentId is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(studentId)) {
+      // If it's a valid ObjectId, use it to find the AdmitCard
+      const admitCard = await AdmitCard.findOne({ studentId: mongoose.Types.ObjectId(studentId) })
+        .populate({
+          path: 'subjects.subjectId',
+          select: 'name code type'
+        })
+        .populate({
+          path: 'studentId',
+          populate: {
+            path: 'userId',
+            select: 'firstName lastName email'
+          }
+        })
+        .lean();
+
+      if (!admitCard) {
+        return res.status(404).json({ message: 'Admit card not found for this student' });
+      }
+
+      return res.status(200).json({ data: admitCard });
+    }
+
+    // If studentId is not a valid ObjectId, query by rollNumber instead
+    const student = await Student.findOne({ rollNumber: studentId }); // Assuming `rollNumber` is a unique identifier
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const admitCard = await AdmitCard.findOne({ studentId: student._id })
       .populate({
         path: 'subjects.subjectId',
         select: 'name code type'
@@ -256,13 +355,14 @@ export const getAdmitCardByStudentId = async (req, res) => {
       return res.status(404).json({ message: 'Admit card not found for this student' });
     }
 
-    res.status(200).json({ data: admitCard });
+    return res.status(200).json({ data: admitCard });
 
   } catch (err) {
     console.error('Error fetching admit card by studentId:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 // GET /api/admit-card/by-name?name=John
 export const getAdmitCardByStudentName = async (req, res) => {
