@@ -307,29 +307,83 @@ export const verifyStudentAndMarksheet = async (rollNumber) => {
 };
 
 // GET /api/marksheet/verify/:rollNumber
+// export const verifyMarksheet = async (req, res) => {
+//   try {
+//     const { rollNumber } = req.params;
+
+//     // Step 1: Find the student by roll number
+//     const student = await Student.findOne({ rollNumber }).populate('userId');
+//     if (!student) return res.status(404).json({ message: 'Student not found' });
+
+//     // Step 2: Find the course linked to the student
+//     const course = await Course.findById(student.courseId);
+//     if (!course) return res.status(404).json({ message: 'Course not found for this student' });
+
+//     // Step 3: Find the marksheet for the student using studentId
+//     const marksheet = await Marksheet.findOne({ studentId: student._id }).populate('subjects.subjectId');
+//     if (!marksheet) return res.status(404).json({ message: 'Marksheet not found' });
+
+//     // Step 4: Add course name to student info
+//     student.courseName = course.name;
+
+//     // Step 5: Generate PDF Buffer using the custom function
+//     const pdfBuffer = await generateMarksheetPDFBuffer(student, marksheet);
+
+//     // Step 6: Set PDF response headers and send the PDF
+//     res.set({
+//       'Content-Type': 'application/pdf',
+//       'Content-Disposition': `attachment; filename=marksheet_${student.rollNumber}.pdf`,
+//       'Content-Length': pdfBuffer.length
+//     });
+
+//     return res.send(pdfBuffer);
+
+//   } catch (error) {
+//     console.error('Error generating marksheet PDF:', error);
+//     res.status(500).json({ message: 'Error generating marksheet PDF' });
+//   }
+// };
+
+
+// modification 26 april 2025
 export const verifyMarksheet = async (req, res) => {
   try {
     const { rollNumber } = req.params;
+    const { fullName } = req.body; // e.g., "Avi Raj"
 
-    // Step 1: Find the student by roll number
+    if (!fullName) {
+      return res.status(400).json({ message: 'Full name is required' });
+    }
+
+    // Step 1: Find the student by roll number and populate user
     const student = await Student.findOne({ rollNumber }).populate('userId');
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    // Step 2: Find the course linked to the student
+    const user = student.userId;
+    if (!user) return res.status(404).json({ message: 'User not found for this student' });
+
+    // Step 2: Compare full name
+    const studentFullName = `${user.firstName} ${user.lastName}`.toLowerCase().trim();
+    if (studentFullName !== fullName.toLowerCase().trim()) {
+      return res.status(403).json({ message: 'Name and roll number do not match' });
+    }
+
+    // Step 3: Get course
     const course = await Course.findById(student.courseId);
     if (!course) return res.status(404).json({ message: 'Course not found for this student' });
 
-    // Step 3: Find the marksheet for the student using studentId
+    // Step 4: Get marksheet
     const marksheet = await Marksheet.findOne({ studentId: student._id }).populate('subjects.subjectId');
     if (!marksheet) return res.status(404).json({ message: 'Marksheet not found' });
 
-    // Step 4: Add course name to student info
+    // Step 5: Add course name and full name
     student.courseName = course.name;
+    student.fullName = studentFullName;
 
-    // Step 5: Generate PDF Buffer using the custom function
+    // Step 6: Generate PDF
     const pdfBuffer = await generateMarksheetPDFBuffer(student, marksheet);
 
-    // Step 6: Set PDF response headers and send the PDF
+    // Step 7: Send PDF
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename=marksheet_${student.rollNumber}.pdf`,

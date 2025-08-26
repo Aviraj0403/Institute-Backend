@@ -47,6 +47,6 @@ router.get('/verify/:rollNumber', async (req, res) => {
   }
 });
 
-router.get('/marksheet/verify/:rollNumber', verifyMarksheet);
+router.post('/marksheet/verify/:rollNumber', verifyMarksheet);
 
 export default router;
