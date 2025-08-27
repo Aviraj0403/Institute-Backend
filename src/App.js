@@ -35,7 +35,9 @@ const allowedOrigins = [
   'https://www.cihsstudies.com',
   'http://cihsstudies.com',
   'http://www.cihsstudies.com',
-  
+  'http://api.cihsstudies.com',
+  'https://api.cihsstudies.com',
+
 ];
 
 app.use(cors({
