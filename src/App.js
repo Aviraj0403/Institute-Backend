@@ -30,7 +30,12 @@ const allowedOrigins = [
   'https://institute-backend-8u6d.onrender.com',
   'https://institute-backend-8u6d.onrender.com/api',
   'https://www.champaransafetybysahilkhan.com',
-  'https://champaransafetybysahilkhan.com'
+  'https://champaransafetybysahilkhan.com',
+  'https://cihsstudies.com',
+  'https://www.cihsstudies.com',
+  'http://cihsstudies.com',
+  'http://www.cihsstudies.com',
+  
 ];
 
 app.use(cors({
