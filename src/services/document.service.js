@@ -18,7 +18,7 @@ export const generateCertificate = async (studentId, studentName, certificateDet
     doc.pipe(stream);
 
     // Header with CIHS Studies Branding
-    doc.image(path.join(__dirname, '../assets/clogo.jpg'), 50, 50, { width: 100 });  // CIHS logo
+    doc.image(path.join(__dirname, '../assets/clogo.png'), 50, 50, { width: 100 });  // CIHS logo
     doc.fontSize(35).font('Helvetica-Bold').text('CIHS Studies', 170, 50, { align: 'center' });  // Institution name
 
     // Title
@@ -88,7 +88,7 @@ export const generateHallTicket = async (studentId, certificateNo) => {
   const student = await Student.findById(studentId);
   if (!student) throw new Error('Student not found.');
 
-  const qrCodeUrl = `https://institute-backend-8u6d.onrender.com/api/verify?studentId=${studentId}&certificateNo=${certificateNo}`;
+  const qrCodeUrl = `https://api.cihsstudies.com/api/verify?studentId=${studentId}&certificateNo=${certificateNo}`;
   const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl);
 
   const doc = new pdfkit({ size: 'A4' });
@@ -126,7 +126,7 @@ export const generateHallTicket = async (studentId, certificateNo) => {
       doc.pipe(uploadStream);
 
       // Header with CIHS Studies Branding
-      doc.image(path.join(__dirname, '../assets/clogo.jpg'), 50, 50, { width: 100 });
+      doc.image(path.join(__dirname, '../assets/clogo.png'), 50, 50, { width: 100 });
       doc.fontSize(35).font('Helvetica-Bold').text('CIHS Studies', 170, 50, { align: 'center' });
 
       // Hall Ticket Title

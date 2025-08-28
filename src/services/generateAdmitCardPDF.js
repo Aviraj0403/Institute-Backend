@@ -8,6 +8,7 @@ const base64Logo1 ='/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAYGBgYHBgcICAcKCwoLCg8ODAwO
 const logoBuffer = Buffer.from(base64Logo1, 'base64');
 
 
+
 export default async function generateAdmitCardPDF(student, subjects) {
   const doc = new PDFDocument({ margin: 50, size: 'A4' });
   const pageWidth = doc.page.width;
@@ -15,7 +16,6 @@ export default async function generateAdmitCardPDF(student, subjects) {
   // === HEADER ===
   const headerHeight = 100;
   doc.rect(0, 0, pageWidth, headerHeight).fill('#002B5B'); // Deep blue
-
   doc.image(logoBuffer, 50, 20, { width: 60 });
 
   doc
@@ -32,9 +32,10 @@ export default async function generateAdmitCardPDF(student, subjects) {
       align: 'center',
     });
 
-  const qrData = `https://institute-backend-8u6d.onrender.com/api/verify/${student.rollNumber}`;
-  const qrCodeBuffer = qr.imageSync(qrData, { type: 'png' });
-  doc.image(qrCodeBuffer, pageWidth - 100, 20, { width: 60 });
+  // === QR Code for Student Verification ===
+  const studentQRData = `https://api.cihsstudies.com/api/verify/${student.rollNumber}`;
+  const studentQRBuffer = qr.imageSync(studentQRData, { type: 'png' });
+  doc.image(studentQRBuffer, pageWidth - 100, 20, { width: 60 });
 
   doc.moveTo(50, headerHeight + 10).lineTo(pageWidth - 50, headerHeight + 10).stroke('#004080');
 
@@ -46,105 +47,103 @@ export default async function generateAdmitCardPDF(student, subjects) {
   const lineHeight = 22;
 
   doc.fontSize(12).fillColor('#004080').font('Helvetica-Bold').text('Student Details:', leftX, y);
-
   y += lineHeight;
+
   doc.fontSize(11).fillColor('#000').font('Helvetica');
   doc.text(`Name: ${student.userId.firstName} ${student.userId.lastName}`, leftX, y);
   doc.text(`Roll No: ${student.rollNumber}`, rightX, y);
-
   y += lineHeight;
+
   doc.text(`DOB: ${new Date(student.dob).toLocaleDateString()}`, leftX, y);
   doc.text(`Course: ${student.courseName || '-'}`, rightX, y);
-
-
   y += lineHeight;
+
   doc.text(`Batch: ${student.passingYear}`, leftX, y);
 
   // === SUBJECTS TABLE ===
+  const tableTop = y + 40;
 
-// === Table Header ===
-const tableTop = y + 40;
-
-doc
-  .fontSize(14)
-  .fillColor('#004080')
-  .font('Helvetica-Bold')
-  .text('Subjects & Exam Schedule', leftX, tableTop);
-
-// === Table Header ===
-const tableHeaderY = tableTop + 30;
-doc
-  .rect(leftX - 5, tableHeaderY - 5, pageWidth - 140, 25)
-  .fill('#D6E4F0'); // Light blue background for header
-
-doc
-  .fontSize(12)
-  .fillColor('#003366')
-  .font('Helvetica-Bold')
-  .text('Code', leftX, tableHeaderY)
-  .text('Subject Name', leftX + 70, tableHeaderY)
-  .text('Type', rightX - 40, tableHeaderY)
-  .text('Exam Date', rightX + 40, tableHeaderY)
-  .text('Time', rightX + 140, tableHeaderY);
-
-// === Rows ===
-let rowY = tableHeaderY + 30;
-const rowHeight = 24;
-
-subjects.forEach((s, i) => {
-  const subject = s.subjectId;
-  const subjectName = subject?.name || `Subject ID: ${subject}`;
-  const subjectCode = subject?.code || '-';
-  const subjectType = subject?.type || '-';
-  const examDate = new Date(s.examDate).toLocaleDateString();
-  const startTime = s.startTime || '-';
-  const endTime = s.endTime || '-';
-  const examTime = `${startTime} ${endTime}`;
-
-  // Alternate row color
-  if (i % 2 === 0) {
-    doc
-      .fillColor('#F4F8FB')
-      .rect(leftX - 5, rowY - 3, pageWidth - 140, rowHeight)
-      .fill();
-  }
-
-  // Row Content
   doc
-    .fillColor('#000')
-    .font('Helvetica')
-    .fontSize(11)
-    .text(subjectCode, leftX, rowY)
-    .text(subjectName, leftX + 70, rowY)
-    .text(subjectType, rightX - 40, rowY)
-    .text(examDate, rightX + 40, rowY)
-    .text(examTime, rightX + 140, rowY);
+    .fontSize(14)
+    .fillColor('#004080')
+    .font('Helvetica-Bold')
+    .text('Subjects & Exam Schedule', leftX, tableTop);
 
-  rowY += rowHeight;
-});
+  const tableHeaderY = tableTop + 30;
+  doc
+    .rect(leftX - 5, tableHeaderY - 5, pageWidth - 140, 25)
+    .fill('#D6E4F0'); // Light blue background
 
+  doc
+    .fontSize(12)
+    .fillColor('#003366')
+    .font('Helvetica-Bold')
+    .text('Code', leftX, tableHeaderY)
+    .text('Subject Name', leftX + 70, tableHeaderY)
+    .text('Type', rightX - 40, tableHeaderY)
+    .text('Exam Date', rightX + 40, tableHeaderY)
+    .text('Time', rightX + 140, tableHeaderY);
 
+  // === Rows ===
+  let rowY = tableHeaderY + 30;
+  const rowHeight = 24;
 
-  // === BARCODE ===
-  const barcodeBuffer = await bwipjs.toBuffer({
-    bcid: 'code128',
-    text: student.rollNumber,
-    scale: 2,
-    height: 10,
-    includetext: true,
-    textxalign: 'center'
+  subjects.forEach((s, i) => {
+    const subject = s.subjectId;
+    const subjectName = subject?.name || `Subject ID: ${subject}`;
+    const subjectCode = subject?.code || '-';
+    const subjectType = subject?.type || '-';
+    const examDate = new Date(s.examDate).toLocaleDateString();
+    const startTime = s.startTime || '-';
+    const endTime = s.endTime || '-';
+    const examTime = `${startTime} ${endTime}`;
+
+    // Alternate row color
+    if (i % 2 === 0) {
+      doc
+        .fillColor('#F4F8FB')
+        .rect(leftX - 5, rowY - 3, pageWidth - 140, rowHeight)
+        .fill();
+    }
+
+    doc
+      .fillColor('#000')
+      .font('Helvetica')
+      .fontSize(11)
+      .text(subjectCode, leftX, rowY)
+      .text(subjectName, leftX + 70, rowY)
+      .text(subjectType, rightX - 40, rowY)
+      .text(examDate, rightX + 40, rowY)
+      .text(examTime, rightX + 140, rowY);
+
+    rowY += rowHeight;
   });
 
-  doc.image(barcodeBuffer, leftX, rowY + 20, { width: 200 });
+  // === BARCODE ===
+  // const barcodeBuffer = await bwipjs.toBuffer({
+  //   bcid: 'code128',
+  //   text: student.rollNumber,
+  //   scale: 2,
+  //   height: 10,
+  //   includetext: true,
+  //   textxalign: 'center'
+  // });
+
+  // doc.image(barcodeBuffer, leftX, rowY + 20, { width: 200 });
+
+  // === SECOND QR CODE FOR WEBSITE ===
+  const websiteQRBuffer = qr.imageSync('https://www.cihsstudies.com', { type: 'png' });
+  doc.image(websiteQRBuffer, pageWidth - 550, rowY + 370, { width: 60 });
+
+  // doc
+  //   .fontSize(9)
+  //   .fillColor('#000')
+  //   .font('Helvetica')
+  //   .text('Scan for Website', pageWidth - 550, rowY + 390, { width: 80, align: 'center' });
 
   // === FOOTER ===
   const footerY = doc.page.height - 100;
   doc.moveTo(50, footerY).lineTo(pageWidth - 50, footerY).stroke('#004080');
-
-  // doc
-  //   .fontSize(10)
-  //   .fillColor('#666')
-  //   .text(`Generated on: ${new Date().toLocaleString()}`, 50, footerY + 10);
 
   doc
     .fontSize(12)
@@ -157,12 +156,13 @@ subjects.forEach((s, i) => {
     .lineTo(pageWidth - 50, footerY + 30)
     .stroke('#004080');
 
-  // Finalize
+  // Finalize PDF
   doc.end();
   const buffers = [];
   for await (const chunk of doc) buffers.push(chunk);
   return Buffer.concat(buffers);
 }
+
 
 
 

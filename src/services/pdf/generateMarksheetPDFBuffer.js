@@ -34,7 +34,8 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
       align: 'center'
     });
 
-  const qrData = `https://institute-backend-8u6d.onrender.com/api/marksheet/verify/${student.rollNumber}`;
+  // === QR Code for Verification ===
+  const qrData = `https://api.cihsstudies.com/api/marksheet/verify/${student.rollNumber}`;
   const qrCodeBuffer = qr.imageSync(qrData, { type: 'png' });
   doc.image(qrCodeBuffer, pageWidth - 100, 20, { width: 60 });
 
@@ -72,7 +73,6 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
   const tableHeaderY = tableTop + 30;
   doc.rect(leftX - 5, tableHeaderY - 5, pageWidth - 140, 25).fill('#D6E4F0');
 
-  // Table Header Layout
   doc
     .fontSize(11)
     .fillColor('#003366')
@@ -85,7 +85,7 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
     .text('Obt.', leftX + 280, tableHeaderY, { width: 40 })
     .text('In Words', leftX + 320, tableHeaderY, { width: 150 });
 
-  // === Rows ===
+  // === ROWS ===
   let rowY = tableHeaderY + 30;
   const rowHeight = 24;
 
@@ -125,25 +125,30 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
   doc.text(`Division: ${marksheet.division}`, leftX, rowY);
 
   // === BARCODE ===
-  const barcodeBuffer = await bwipjs.toBuffer({
-    bcid: 'code128',
-    text: student.rollNumber,
-    scale: 2,
-    height: 10,
-    includetext: true,
-    textxalign: 'center'
-  });
+  // const barcodeBuffer = await bwipjs.toBuffer({
+  //   bcid: 'code128',
+  //   text: student.rollNumber,
+  //   scale: 2,
+  //   height: 10,
+  //   includetext: true,
+  //   textxalign: 'center'
+  // });
 
-  doc.image(barcodeBuffer, leftX, rowY + 20, { width: 200 });
+  // doc.image(barcodeBuffer, leftX, rowY + 20, { width: 200 });
+
+  // === FOOTER ===
+  const websiteQRBuffer = qr.imageSync('https://www.cihsstudies.com', { type: 'png' });
+  doc.image(websiteQRBuffer, pageWidth - 550, rowY + 320, { width: 60 });
+
+  // doc
+  //   .fontSize(9)
+  //   .fillColor('#000')
+  //   .font('Helvetica')
+  //   .text('Scan for Website', pageWidth - 550, rowY + 390, { width: 80, align: 'center' });
 
   // === FOOTER ===
   const footerY = doc.page.height - 100;
   doc.moveTo(50, footerY).lineTo(pageWidth - 50, footerY).stroke('#004080');
-
-  doc
-    .fontSize(10)
-    .fillColor('#666')
-    .text(`Generated on: ${new Date().toLocaleString()}`, 50, footerY + 10);
 
   doc
     .fontSize(12)
@@ -155,7 +160,7 @@ export default async function generateMarksheetPDFBuffer(student, marksheet) {
     .moveTo(pageWidth - 250, footerY + 30)
     .lineTo(pageWidth - 50, footerY + 30)
     .stroke('#004080');
-
+  // Finalize PDF
   doc.end();
 
   const buffers = [];
