@@ -307,42 +307,42 @@ export const verifyStudentAndMarksheet = async (rollNumber) => {
 };
 
 // GET /api/marksheet/verify/:rollNumber
-// export const verifyMarksheet = async (req, res) => {
-//   try {
-//     const { rollNumber } = req.params;
+export const verifyMarksheet1 = async (req, res) => {
+  try {
+    const { rollNumber } = req.params;
 
-//     // Step 1: Find the student by roll number
-//     const student = await Student.findOne({ rollNumber }).populate('userId');
-//     if (!student) return res.status(404).json({ message: 'Student not found' });
+    // Step 1: Find the student by roll number
+    const student = await Student.findOne({ rollNumber }).populate('userId');
+    if (!student) return res.status(404).json({ message: 'Student not found' });
 
-//     // Step 2: Find the course linked to the student
-//     const course = await Course.findById(student.courseId);
-//     if (!course) return res.status(404).json({ message: 'Course not found for this student' });
+    // Step 2: Find the course linked to the student
+    const course = await Course.findById(student.courseId);
+    if (!course) return res.status(404).json({ message: 'Course not found for this student' });
 
-//     // Step 3: Find the marksheet for the student using studentId
-//     const marksheet = await Marksheet.findOne({ studentId: student._id }).populate('subjects.subjectId');
-//     if (!marksheet) return res.status(404).json({ message: 'Marksheet not found' });
+    // Step 3: Find the marksheet for the student using studentId
+    const marksheet = await Marksheet.findOne({ studentId: student._id }).populate('subjects.subjectId');
+    if (!marksheet) return res.status(404).json({ message: 'Marksheet not found' });
 
-//     // Step 4: Add course name to student info
-//     student.courseName = course.name;
+    // Step 4: Add course name to student info
+    student.courseName = course.name;
 
-//     // Step 5: Generate PDF Buffer using the custom function
-//     const pdfBuffer = await generateMarksheetPDFBuffer(student, marksheet);
+    // Step 5: Generate PDF Buffer using the custom function
+    const pdfBuffer = await generateMarksheetPDFBuffer(student, marksheet);
 
-//     // Step 6: Set PDF response headers and send the PDF
-//     res.set({
-//       'Content-Type': 'application/pdf',
-//       'Content-Disposition': `attachment; filename=marksheet_${student.rollNumber}.pdf`,
-//       'Content-Length': pdfBuffer.length
-//     });
+    // Step 6: Set PDF response headers and send the PDF
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=marksheet_${student.rollNumber}.pdf`,
+      'Content-Length': pdfBuffer.length
+    });
 
-//     return res.send(pdfBuffer);
+    return res.send(pdfBuffer);
 
-//   } catch (error) {
-//     console.error('Error generating marksheet PDF:', error);
-//     res.status(500).json({ message: 'Error generating marksheet PDF' });
-//   }
-// };
+  } catch (error) {
+    console.error('Error generating marksheet PDF:', error);
+    res.status(500).json({ message: 'Error generating marksheet PDF' });
+  }
+};
 
 
 // modification 26 april 2025

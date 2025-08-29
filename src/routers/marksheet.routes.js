@@ -8,6 +8,7 @@ import {
   isResultAvailable,
   verifyStudentAndMarksheet,
   verifyMarksheet,
+  verifyMarksheet1
 } from '../controllers/marksheet.controller.js';
 
 const router = express.Router();
@@ -48,5 +49,6 @@ router.get('/verify/:rollNumber', async (req, res) => {
 });
 
 router.post('/marksheet/verify/:rollNumber', verifyMarksheet);
+router.get('/marksheet/verify/:rollNumber', verifyMarksheet1);
 
 export default router;
